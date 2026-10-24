@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>VIP Kasa & Garson Bildirim Ekranı</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: #0c0c0e; color: #fff; padding: 24px; margin: 0; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 16px; margin-bottom: 24px; }
+        .header h1 { font-size: 22px; font-weight: 800; color: #ffb300; letter-spacing: 1px; margin: 0; display: flex; align-items: center; gap: 10px; }
+        .live-badge { background: #30d158; color: #000; font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 12px; text-transform: uppercase; }
+
+        .card-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+        
+        .card { background: rgba(28, 28, 30, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-left: 8px solid #ffb300; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        
+        .card.iptal { border-left-color: #ff453a; background: rgba(255, 69, 58, 0.1); }
+        .card.koz { border-left-color: #ff9f0a; }
+        .card.pos { border-left-color: #0a84ff; }
+
+        .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .masa-no { font-size: 28px; font-weight: 900; color: #fff; }
+        .zaman { font-size: 12px; color: #8e8e93; font-weight: 600; }
+        
+        .istek-text { font-size: 18px; font-weight: 700; color: #f2f2f7; margin-bottom: 16px; }
+        
+        .ok-btn { background: #30d158; border: none; color: #000; font-weight: 800; padding: 12px; border-radius: 12px; cursor: pointer; font-size: 14px; transition: transform 0.1s; width: 100%; text-align: center; }
+        .ok-btn:active { transform: scale(0.97); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>👑 CANLI MASA İSTEKLERİ</h1>
+        <span class="live-badge">CANLI SİSTEM</span>
+    </div>
+
+    <div id="cardList" class="card-list"></div>
+
+    <audio id="bellSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
+
+    <script>
+        const socket = io();
+        const cardList = document.getElementById('cardList');
+        const bellSound = document.getElementById('bellSound');
+
+        socket.on('kasa_yeni_istek', (data) => {
+            try { bellSound.play(); } catch(e) {}
+
+            const card = document.createElement('div');
+            let extraClass = '';
+            
+            if (data.istek.includes('İPTAL')) extraClass = 'iptal';
+            else if (data.istek.includes('Köz')) extraClass = 'koz';
+            else if (data.istek.includes('POS')) extraClass = 'pos';
+
+            card.className = 'card ' + extraClass;
+            card.innerHTML = `
+                <div>
+                    <div class="card-top">
+                        <span class="masa-no">MASA ${data.masaNo}</span>
+                        <span class="zaman">${data.zaman}</span>
+                    </div>
+                    <div class="istek-text">${data.istek}</div>
+                </div>
+                <button class="ok-btn" onclick="this.parentElement.remove()">TAMAMLAMALANDI / KALDIR</button>
+            `;
+
+            cardList.prepend(card);
+        });
+    </script>
+</body>
+</html>

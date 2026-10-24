@@ -1,0 +1,29 @@
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: "*" } });
+
+// Müşteri ekranı
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Kasa / Garson ekranı
+app.get('/kasa', (req, res) => {
+    res.sendFile(path.join(__dirname, 'kasa.html'));
+});
+
+io.on('connection', (socket) => {
+    socket.on('musteri_istek', (data) => {
+        io.emit('kasa_yeni_istek', data);
+    });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Sunucu ${PORT} portunda yayında!`);
+});
